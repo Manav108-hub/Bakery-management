@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from src.models.models import Product, Order, User, db
-from werkzeug.security import generate_password_hash, check_password_hash
 import pika
 import os
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,166 +10,6 @@ api_blueprint = Blueprint('api', __name__)
 
 def make_error_response(message, status_code):
     return jsonify({"error": message}), status_code
-
-# Admin Endpoints
-@api_blueprint.route('/create-first-admin', methods=['POST'])
-def create_first_admin():
-    """Create initial admin account (only works when no users exist)"""
-    if User.query.count() > 0:
-        return make_error_response("Initial admin already exists", 400)
-
-    data = request.get_json()
-    required_fields = ['username', 'email', 'password']
-    
-    if not all(field in data for field in required_fields):
-        return make_error_response("Missing required fields", 400)
-
-    admin_secret = os.getenv('ADMIN_CREATION_SECRET')
-    if data.get('secret') != admin_secret:
-        return make_error_response("Invalid admin secret", 401)
-
-    new_admin = User(
-        username=data['username'],
-        email=data['email'],
-        is_admin=True
-    )
-    new_admin.set_password(data['password'])
-    
-    try:
-        db.session.add(new_admin)
-        db.session.commit()
-        return jsonify({
-            "message": "Initial admin created successfully",
-            "user": {
-                "id": new_admin.id,
-                "username": new_admin.username,
-                "email": new_admin.email,
-                "is_admin": new_admin.is_admin
-            }
-        }), 201
-    except SQLAlchemyError:
-        db.session.rollback()
-        return make_error_response("Database error", 500)
-
-# Authentication Endpoints
-@api_blueprint.route('/register', methods=['POST'])
-def register():
-    """Register new user (non-admin by default)"""
-    try:
-        data = request.get_json()
-        required_fields = ['username', 'email', 'password']
-        
-        if not all(field in data for field in required_fields):
-            return make_error_response("Missing required fields: username, email, password", 400)
-
-        if 'is_admin' in data:
-            return make_error_response("Cannot self-assign admin status", 400)
-
-        if User.query.filter_by(username=data['username']).first():
-            return make_error_response("Username already exists", 409)
-
-        if User.query.filter_by(email=data['email']).first():
-            return make_error_response("Email already exists", 409)
-
-        new_user = User(
-            username=data['username'],
-            email=data['email'],
-            is_admin=False
-        )
-        new_user.set_password(data['password'])
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        return jsonify({
-            "id": new_user.id,
-            "username": new_user.username,
-            "email": new_user.email,
-            "is_admin": new_user.is_admin
-        }), 201
-    except SQLAlchemyError:
-        db.session.rollback()
-        return make_error_response("Database error", 500)
-
-@api_blueprint.route('/login', methods=['POST'])
-def login():
-    """User login"""
-    try:
-        data = request.get_json()
-        if not data or 'username' not in data or 'password' not in data:
-            return make_error_response("Missing username or password", 400)
-
-        user = User.query.filter_by(username=data['username']).first()
-
-        if not user or not user.check_password(data['password']):
-            return make_error_response("Invalid credentials", 401)
-
-        access_token = create_access_token(
-            identity={
-                'id': user.id,
-                'username': user.username,
-                'is_admin': user.is_admin
-            },
-            expires_delta=timedelta(days=7)
-        )
-
-        return jsonify({
-            "access_token": access_token,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "is_admin": user.is_admin
-            }
-        }), 200
-    except SQLAlchemyError:
-        return make_error_response("Database error", 500)
-
-# User Management Endpoints
-@api_blueprint.route('/users', methods=['GET'])
-@jwt_required()
-def get_users():
-    """Get all users (Admin only)"""
-    current_user = get_jwt_identity()
-    if not current_user['is_admin']:
-        return make_error_response("Unauthorized", 403)
-
-    try:
-        users = User.query.all()
-        return jsonify([{
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "is_admin": u.is_admin,
-            "order_count": len(u.orders)
-        } for u in users])
-    except SQLAlchemyError:
-        return make_error_response("Database error", 500)
-
-@api_blueprint.route('/users/<int:user_id>', methods=['GET'])
-@jwt_required()
-def get_user(user_id):
-    """Get user by ID (Admin only)"""
-    current_user = get_jwt_identity()
-    if not current_user['is_admin']:
-        return make_error_response("Unauthorized", 403)
-
-    try:
-        user = User.query.get_or_404(user_id)
-        return jsonify({
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "is_admin": user.is_admin,
-            "created_at": user.created_at.isoformat(),
-            "orders": [{
-                "id": o.id,
-                "product": o.product.name,
-                "status": o.status
-            } for o in user.orders]
-        })
-    except SQLAlchemyError:
-        return make_error_response("Database error", 500)
 
 # Product Endpoints
 @api_blueprint.route('/products', methods=['GET'])
@@ -345,3 +184,4 @@ def create_order():
     except SQLAlchemyError:
         db.session.rollback()
         return make_error_response("Database error", 500)
+    
