@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: bakery_db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bakery_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bakery_mq
+    ports:
+      - "15672:15672"
+    networks:
+      - bakery_network
+
+  backend:
+    build: ./backend
+    container_name: bakery_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - bakery_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile  # Explicitly specified
+    container_name: bakery_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:8000/api
+    depends_on:
+      - backend
+    networks:
+      - bakery_network
+
+volumes:
+  postgres_data:
+
+networks:
+  bakery_network:
+    driver: bridge

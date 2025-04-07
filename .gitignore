@@ -1,0 +1,90 @@
+backend/.env
+backend/.venv/*
+
+# Python general
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+*.tar.gz
+*.bak
+*.swp
+*~
+*.ipynb_checkpoints/
+
+# Virtual environments (uv creates these)
+.venv/
+venv/
+env/
+
+# uv-specific files and directories
+.uv/
+.uv-cache/
+uv.lock  # Optional: Include this if you don't want to track the lock file
+
+# Dependency directories (if you install dependencies locally)
+site-packages/
+lib/
+lib64/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+*.log
+htmlcov/
+.tox/
+.nox/
+coverage/
+
+# Linting and formatting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.flake8
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and runtime data
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Documentation build outputs
+docs/_build/
+_build/
+
+# Miscellaneous
+*.tmp
+*.temp
+*.bak
+*.backup
