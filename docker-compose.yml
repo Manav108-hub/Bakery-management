@@ -18,45 +18,59 @@ services:
       timeout: 5s
       retries: 5
 
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: bakery_mq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=secret
     ports:
-      - "15672:15672"
+      - "5672:5672"    # AMQP port for application access
+      - "15672:15672"  # Management UI
     networks:
       - bakery_network
+    healthcheck:
+      test: ["CMD", "curl", "-u", "admin:secret", "-f", "http://localhost:15672/api/aliveness-test/%2F"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: bakery_backend
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=postgres
+      - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - API_KEY=${API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks:
       - bakery_network
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile  # Explicitly specified
+      dockerfile: Dockerfile
     container_name: bakery_frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     environment:
-      - REACT_APP_API_URL=http://backend:8000/api
+      - REACT_APP_API_URL=http://localhost:8000/api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - bakery_network
 
