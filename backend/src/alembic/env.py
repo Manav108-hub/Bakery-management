@@ -1,5 +1,5 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 from alembic import context
 import sys
 from pathlib import Path
@@ -11,10 +11,13 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.models.models import Base
 from src.database import DATABASE_URL
 
+# This is the Alembic Config object, which provides access to the values within alembic.ini
 config = context.config
+
+# Interpret the config file for Python logging.
 fileConfig(config.config_file_name)
 
-# Set target_metadata to your Base.metadata
+# Set target_metadata to your SQLAlchemy Base.metadata
 target_metadata = Base.metadata
 
 def run_migrations_offline():
@@ -29,14 +32,12 @@ def run_migrations_offline():
         context.run_migrations()
 
 def run_migrations_online():
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Create an engine using the DATABASE_URL defined in src/database.py
+    connectable = create_engine(DATABASE_URL, poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
         )
         with context.begin_transaction():
             context.run_migrations()

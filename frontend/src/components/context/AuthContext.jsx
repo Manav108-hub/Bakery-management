@@ -13,13 +13,17 @@ export function AuthProvider({ children }) {
     if (parts.length === 2) return parts.pop().split(';').shift();
   };
 
-  const fetchUser = async (token) => {
+  const fetchUser = async () => {
     try {
       const response = await api.get('/users/me');
       setUser(response.data);
     } catch (error) {
-      setUser(null);
-      console.error('User fetch failed:', error);
+      if (error.response?.status === 401) {
+        logout();
+      } else {
+        console.error('User fetch failed:', error);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -28,20 +32,23 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = getCookie('token');
     if (token) {
-      fetchUser(token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      fetchUser();
     } else {
       setLoading(false);
     }
   }, []);
 
   const login = (token, userData) => {
-    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}`;
+    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; SameSite=Lax`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(userData);
     setLoading(false);
   };
 
   const logout = () => {
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
   };
 

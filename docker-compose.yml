@@ -25,12 +25,12 @@ services:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=secret
     ports:
-      - "5672:5672"    # AMQP port for application access
-      - "15672:15672"  # Management UI
+      - "5672:5672"    
+      - "15672:15672"  
     networks:
       - bakery_network
     healthcheck:
-      test: ["CMD", "curl", "-u", "admin:secret", "-f", "http://localhost:15672/api/aliveness-test/%2F"]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,6 +46,7 @@ services:
     environment:
       - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - RABBITMQ_URL=${RABBITMQ_URL}
@@ -58,6 +59,13 @@ services:
         condition: service_healthy
     networks:
       - bakery_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import http.client; conn = http.client.HTTPConnection('localhost', 8000); conn.request('GET', '/api/healthy'); resp = conn.getresponse(); exit(0 if resp.status == 200 else 1)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 
   frontend:
     build:

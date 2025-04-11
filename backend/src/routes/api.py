@@ -1,4 +1,3 @@
-# backend/src/routes/api.py
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -266,6 +265,11 @@ def get_cart(
 ):
     cart_items = db.query(Cart).filter(Cart.user_id == current_user.id).all()
     return [CartResponse.from_orm(item) for item in cart_items]
+
+@router.get("/healthy")
+async def health_check():
+    return {"status": "healthy"}
+
 
 # Schema updates (in schemas.py)
 class ProductCreate(BaseModel):

@@ -18,4 +18,4 @@ COPY src/alembic /app/alembic
 COPY src/database.py /app/src/database.py
 COPY src/config.py /app/src/config.py
 RUN pip install alembic psycopg2-binary
-CMD ["alembic", "upgrade", "head"] && ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/bin/sh","-c","alembic -c src/alembic.ini upgrade head && exec uvicorn src.app:app --host 0.0.0.0 --port 8000"]
