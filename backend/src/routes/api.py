@@ -82,7 +82,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         username=user_data.username,
         email=user_data.email,
         password_hash=hashed_password,
-        is_admin=False,  # Removed user-controlled admin flag
+        is_admin=user_data.is_admin,  # Removed user-controlled admin flag
         is_active=True   # Added activation status
     )
 
