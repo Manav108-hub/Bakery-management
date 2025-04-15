@@ -26,6 +26,65 @@ A full-stack bakery management system with FastAPI backend and React frontend, f
 - Token-based authentication with refresh flow
 - Responsive design (Tailwind CSS)
 
+
+## ✨ Features
+
+### **Backend (FastAPI)**
+- 🔐 **User Management**: Registration, login, and role-based access (admin/user)
+- 🍰 **Product Catalog**: CRUD operations for bakery products
+- 🛒 **Shopping Cart**: Add/remove products, quantity management
+- 📦 **Order System**: Place orders with stock management
+- ⚡ **Asynchronous Tasks**: RabbitMQ integration for background processing
+- 📚 **API Docs**: Interactive Swagger/ReDoc documentation
+- 🛡️ **Security**: JWT token authentication
+- 🐘 **Database**: PostgreSQL with SQLAlchemy ORM
+
+### **Frontend (React)**
+
+The React-based interface focuses on user experience with:
+1 . Interactive product browsing/cart management
+2 . JWT-based session handling
+3 . Responsive design via Tailwind CSS
+4 . Real-time API communication with Axios
+5 . Role-specific views (user/admin)
+6 . Implements client-side routing with React Router and state management via Context API.
+
+- 👨💻 User authentication (login/registration)
+- 🎨 Product browsing interface
+- 🛍️ Shopping cart functionality
+- 📜 Order history tracking
+- ⚙️ Admin dashboard (basic CRUD operations)
+
+
+### **Docker**
+- Containerization system that packages the application with:
+- Isolated environments for backend/frontend
+- PostgreSQL and RabbitMQ services
+- Network configuration for cross-service communication
+- Dependency management via Docker images
+- Enables consistent deployment across development/staging/production environments.
+
+### **RabbitMQ**
+
+- Message broker handling asynchronous operations:
+- Decouples main API from background tasks
+- Manages queues for user events, order notifications, and system logs
+- Enables horizontal scaling of task workers
+- Provides fail-safety through message persistence
+- Used for non-critical path operations (email alerts, analytics, audit logs).
+
+
+### **Redis**
+
+ - In-memory data store for enhanced performance and real-time features:
+ - Caching : Stores frequently accessed data like product catalogs with TTL support.
+ - Session Storage : Manages user sessions securely with fast retrieval.
+ - Pub/Sub : Enables real-time notifications via WebSocket for cart updates and order status.
+ - Rate Limiting : Protects APIs by enforcing request limits per user or IP.
+ - Atomic Operations : Ensures thread-safe actions for cart updates and stock management.
+ - Task State Tracking : Monitors the status of background jobs processed by RabbitMQ.
+
+
 ## 🛠️ Tech Stack
 
 **Backend**  
