@@ -13,3 +13,4 @@ pydantic
 email-validator
 uvicorn
 sqlalchemy-cockroachdb
+redis
