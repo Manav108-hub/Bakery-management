@@ -4,6 +4,8 @@ A full-stack bakery management system with FastAPI backend and React frontend, f
 
 ![Architecture Diagram](./image.png)
 
+
+
 ![Workflow Graph](./workflow.png)
 
 ## ✨ Key Features
@@ -71,10 +73,6 @@ Frontend:
 cd frontend
 npm install
 npm run dev
-
-
-
-
 
 
 🔧 Implementation Details
