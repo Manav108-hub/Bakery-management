@@ -70,15 +70,11 @@ cd frontend
 npm install
 npm run dev
 
-graph TD
-  A[React UI] -->|REST/WebSocket| B[FastAPI]
-  B -->|CRUD| C[PostgreSQL]
-  B -->|Cache| D[Redis]
-  B -->|Tasks| E[RabbitMQ]
-  D -->|Pub/Sub| A
-  E -->|Workers| F[Task Consumers]
+![Workflow Graph](./workflow.png)
 
-  🔧 Implementation Details
+
+
+🔧 Implementation Details
 Redis Usage:
 
 Session storage (30m TTL)
