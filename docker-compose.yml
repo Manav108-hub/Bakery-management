@@ -77,11 +77,11 @@ services:
     networks:
       - bakery_network
     healthcheck:
-      test: ["CMD", "python", "-c", "import http.client; conn = http.client.HTTPConnection('localhost', 8000); conn.request('GET', '/api/healthy'); resp = conn.getresponse(); exit(0 if resp.status == 200 else 1)"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+        test: ["CMD", "python", "-c", "import http.client; conn = http.client.HTTPConnection('localhost', 8000); conn.request('GET', '/api/healthy'); resp = conn.getresponse(); exit(0 if resp.status == 200 else 1)"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
+        start_period: 30s
 
   frontend:
     build:
